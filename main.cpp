@@ -72,7 +72,7 @@ int main()
 	get_user_puzzle(cont);
 	print(cont);
 	find_moves(0, cont);
-	choose_path(0,1,2, cont);
+	choose_path(0, 2, 1, cont);
 	
 	
 	
@@ -303,7 +303,7 @@ int choose_path(int T, int x, int y, Container this_contaier)
 	if (moves[UP])
 	{
 		curr_distance = manhattan(T, x, y - 1, this_contaier);
-		cout << curr_distance << endl;
+		cout << "\nDistance UP is " << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
@@ -314,6 +314,7 @@ int choose_path(int T, int x, int y, Container this_contaier)
 	if (moves[DOWN])
 	{
 		curr_distance = manhattan(T, x, y + 1, this_contaier);
+		cout << "Distance DOWN is " << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
@@ -323,6 +324,7 @@ int choose_path(int T, int x, int y, Container this_contaier)
 	if (moves[RIGHT])
 	{
 		curr_distance = manhattan(T, x + 1, y, this_contaier);
+		cout << "Distance RIGHT is " << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
@@ -332,7 +334,7 @@ int choose_path(int T, int x, int y, Container this_contaier)
 	if (moves[LEFT])
 	{
 		curr_distance = manhattan(T, x - 1, y, this_contaier);
-		cout << curr_distance << endl;
+		cout << "Distance LEFT is " << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
@@ -351,6 +353,14 @@ int manhattan(int T, int x, int y, Container this_contaier)
 	LL * current_position = this_contaier.find(T);
 	LL * destination_position = this_contaier.find(x, y);
 
+	/*
+	cout << endl;
+	cout << "(" << x << "," << y << ")" << endl;
+	cout << "Current tile" << current_position->tile << "(" << current_position->x << current_position->y << ")" << endl;
+	cout << "Dest tile " << destination_position->tile << "(" << destination_position->x << destination_position->y << ")" << endl;
+	cout << endl;
+	*/
+
 	// SWAP
 	tempX = current_position->x;
 	tempY = current_position->y;
@@ -359,8 +369,9 @@ int manhattan(int T, int x, int y, Container this_contaier)
 	destination_position->x = tempX;
 	destination_position->y = tempY;
 	// END SWAP
+	
 
-
+	cout << endl;
 	for (int i = 0; i < NUM_TILES; i++)
 	{
 		temp = this_contaier.find(i);
@@ -371,11 +382,24 @@ int manhattan(int T, int x, int y, Container this_contaier)
 		difX = abs((solvedX - unsolvedX));
 		difY = abs((solvedY - unsolvedY));
 		absoluteDif += difX + difY;
+		/*
+		cout << "Unsolved " << i << " " << "(" << unsolvedX << "," << unsolvedY << ")" << endl;
+		cout << "Snsolved " << i << " " << "(" << solvedX << "," << solvedY << ")" << endl;
+		cout << absoluteDif;
+		cout << endl;
+		*/
 	}
+
+	// SWAP BACK 
+	tempX = current_position->x;
+	tempY = current_position->y;
+	current_position->x = destination_position->x;
+	current_position->y = destination_position->y;
+	destination_position->x = tempX;
+	destination_position->y = tempY;
+	// END SWAP
 	
 	return absoluteDif;
-	// No need to undo swap, stack frame will be destroyed along with this_container // 
-
 }
 
 
