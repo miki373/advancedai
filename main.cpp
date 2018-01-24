@@ -303,10 +303,12 @@ int choose_path(int T, int x, int y, Container this_contaier)
 	if (moves[UP])
 	{
 		curr_distance = manhattan(T, x, y - 1, this_contaier);
+		cout << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
 			direction = UP;
+			
 		}
 	}
 	if (moves[DOWN])
@@ -330,6 +332,7 @@ int choose_path(int T, int x, int y, Container this_contaier)
 	if (moves[LEFT])
 	{
 		curr_distance = manhattan(T, x - 1, y, this_contaier);
+		cout << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
