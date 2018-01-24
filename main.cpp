@@ -14,10 +14,10 @@ ax, ay = current tile
 bx, by = next state to compare tile
 */
 
-// TO CHANGE NUMBER OF TILES, CHANGE APROPTIATE FIELDS
-#define NUM_TILES 9
+// TO CHANGE NUMBER OF TILES, CHANGE APPROPRIATE FIELDS
 #define NUM_ROWS 3
 #define NUM_TILES_IN_ROW 3 
+#define NUM_TILES NUM_ROWS * NUM_TILES_IN_ROW
 // DO NOT CHANGE THERE VALUES
 #define XY 2			// number of coordinates, x and y
 #define X 0				// position of x coordinate
@@ -44,8 +44,7 @@ int solved[NUM_TILES][XY] = {
 
 };
 
-// user entered unsolved puzzle
-int puzzle[NUM_TILES][XY];
+
 
 // valid moves calculate for current position of
 // blank tile
@@ -53,35 +52,32 @@ int moves[MAX_MOVES];
 
 void print(Container this_contaier);
 bool is_on(int T, int x, int y, Container this_contaier);
-bool clear(int x, int y, Container this_contaier);
+bool is_clear(int x, int y, Container this_contaier);
+void on(int T, int x, int y, Container this_container);
+void clear(int x, int y, Container this_container);
 bool adj(int ax, int ay, int bx, int by);
 void find_moves(int T, Container this_contaier);
 bool move(int T, int ax, int ay, int bx, int by);
+void get_user_puzzle(Container &this_contaier);
+int choose_path(int T, int x, int y, Container this_contaier);
+int manhattan(int T, int x, int y, Container this_contaier);
 
 int main()
 {
+	// ADT
 	Container cont;
 	LL *temp;
 	
-	
-	cont.insert("clear", 0, 1, 1);
-	cont.insert("on", 1, 0, 0);
-	cont.insert("on", 2, 1, 0);
-	cont.insert("on", 3, 2, 0);
-	cont.insert("on", 4, 2, 1);
-	cont.insert("on", 5, 2, 2);
-	cont.insert("on", 6, 1, 2);
-	cont.insert("on", 7, 0, 2);
-	cont.insert("on", 8, 0, 1);
-
-	find_moves(6, cont);
-
-	for (int i = 0; i < MAX_MOVES; i++)
-	{
-		cout << moves[i] << endl;
-	}
-
+	// BEGIN PUZZLE CODE
+	get_user_puzzle(cont);
 	print(cont);
+	find_moves(0, cont);
+	choose_path(0,1,2, cont);
+	
+	
+	
+	
+	
 	return 0;
 }
 
@@ -90,6 +86,7 @@ int main()
 // tested and works ok
 void print(Container this_contaier)
 {
+	
 	LL * temp_struct;			// temporary pointer to struct holding info
 	int temp_arr[NUM_TILES];	// to lienar array
 	int col_pos;				// position in column 
@@ -150,6 +147,16 @@ bool is_clear(int x, int y, Container this_contaier)
 
 }
 
+void on(int T, int x, int y, Container this_container)
+{
+	this_container.insert("on", T, x, y);
+}
+
+void clear(int x, int y, Container this_container)
+{
+	this_container.insert("clear", 0, x, y);
+}
+
 // check if ax and ay are adjacent to bx and by
 bool adj(int ax, int ay, int bx, int by)
 {
@@ -177,7 +184,6 @@ bool adj(int ax, int ay, int bx, int by)
 	return false;
 }
 
-
 // find moves available to tile T
 // clears and populates global moves array
 void find_moves(int T, Container this_contaier)
@@ -191,14 +197,17 @@ void find_moves(int T, Container this_contaier)
 	y = temp_struct->y;
 	status = temp_struct->status;
 
-	// clear moves array
+	// reset the moves golobal array. 
+	// make all elements 0
 	for (int i = 0; i < MAX_MOVES; i++)
 	{
 		moves[i] = 0;
 	}
-	
+	// NON CLEAR tile test
+	// will set 
 	if (status == "on")
 	{
+		// find where clear tile is located
 		LL * temp_blank = this_contaier.find("clear",0);
 		int blank_x = temp_blank->x;
 		int blank_y = temp_blank->y;
@@ -224,6 +233,11 @@ void find_moves(int T, Container this_contaier)
 
 
 	}
+	// CLEAR TILE test
+	// tests where clear tile is located. 
+	// IF center (1,1) then moves: UP, DOWN, LEFT, RIGHT
+	// IF endge & middle (0,1),(1,0),(1,2)... then moves: LEFT, RIGHT, DOWN/UP
+	// IF edge (0,0),(0,2),(2,0) ... then moves: LEFT/RIGHT, DOWN/UP
 	else
 	{
 		// begin testing moves
@@ -250,3 +264,115 @@ void find_moves(int T, Container this_contaier)
 		// end test moves
 	}
 }
+
+// gets user to input puzzle
+void get_user_puzzle(Container &this_contaier)
+{
+	int x, y, tile_num;
+	string status;
+
+	cout << "Enter puzzle:\nFormat (x,y) = tile numbe" << endl;
+	for (int i = 0; i < NUM_TILES; i++)
+	{
+		x = i % 3;
+		y = i / 3;
+		cout << '(' << x << ',' << y << ") : ";
+		cin >> tile_num;
+		if (tile_num == 0)
+		{
+			status = "clear";
+		}
+		else
+		{
+			status = "on";
+		}
+		this_contaier.insert(status,tile_num,x,y);
+	}
+	cout << "Data accepted..." << endl;
+}
+
+int choose_path(int T, int x, int y, Container this_contaier)
+{
+	int direction = 0; 
+	int curr_distance = 0;
+	int shortest_distance = INT_MAX;
+	LL * current_tile;
+	LL * destinatio_tile;
+	int tempX, tempY;
+
+	if (moves[UP])
+	{
+		curr_distance = manhattan(T, x, y - 1, this_contaier);
+		if (curr_distance < shortest_distance)
+		{
+			shortest_distance = curr_distance;
+			direction = UP;
+		}
+	}
+	if (moves[DOWN])
+	{
+		curr_distance = manhattan(T, x, y + 1, this_contaier);
+		if (curr_distance < shortest_distance)
+		{
+			shortest_distance = curr_distance;
+			direction = DOWN;
+		}
+	}
+	if (moves[RIGHT])
+	{
+		curr_distance = manhattan(T, x + 1, y, this_contaier);
+		if (curr_distance < shortest_distance)
+		{
+			shortest_distance = curr_distance;
+			direction = RIGHT;
+		}
+	}
+	if (moves[LEFT])
+	{
+		curr_distance = manhattan(T, x - 1, y, this_contaier);
+		if (curr_distance < shortest_distance)
+		{
+			shortest_distance = curr_distance;
+			direction = LEFT;
+		}
+	}
+
+	return direction;
+}
+
+int manhattan(int T, int x, int y, Container this_contaier)
+{
+	int tempX, tempY, difX, difY, solvedX, solvedY, unsolvedX, unsolvedY;
+	int absoluteDif = 0;
+	LL * temp;
+	LL * current_position = this_contaier.find(T);
+	LL * destination_position = this_contaier.find(x, y);
+
+	// SWAP
+	tempX = current_position->x;
+	tempY = current_position->y;
+	current_position->x = destination_position->x;
+	current_position->y = destination_position->y;
+	destination_position->x = tempX;
+	destination_position->y = tempY;
+	// END SWAP
+
+
+	for (int i = 0; i < NUM_TILES; i++)
+	{
+		temp = this_contaier.find(i);
+		unsolvedX = temp->x;
+		unsolvedY = temp->y;
+		solvedX = solved[i][X];
+		solvedY = solved[i][Y];
+		difX = abs((solvedX - unsolvedX));
+		difY = abs((solvedY - unsolvedY));
+		absoluteDif += difX + difY;
+	}
+	
+	return absoluteDif;
+	// No need to undo swap, stack frame will be destroyed along with this_container // 
+
+}
+
+

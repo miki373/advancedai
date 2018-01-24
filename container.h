@@ -26,6 +26,7 @@ public:
 	void print();
 	LL * find(string, int);
 	LL * find(int);
+	LL * find(int, int);
 
 };
 

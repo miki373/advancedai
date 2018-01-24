@@ -108,6 +108,28 @@ LL * Container::find(int tile)
 	}
 }
 
+LL * Container::find(int x, int y)
+{
+	curr = head;
+
+	while (curr != NULL)
+	{
+		if ((curr->x == x) && (curr->y == y))
+		{
+			break;
+		}
+		curr = curr->next;
+	}
+	if (curr != NULL)
+	{
+		return curr;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
 LL* Container::find(string status, int tile)
 {
 	curr = head;
