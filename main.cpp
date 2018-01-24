@@ -12,18 +12,25 @@ x = x vector
 y = y vector
 ax, ay = current tile
 bx, by = next state to compare tile
+0 = UP
+1 = DOWN
+2 = LEFT
+3 = RIGHT
 */
 
 // TO CHANGE NUMBER OF TILES, CHANGE APPROPRIATE FIELDS
 #define NUM_ROWS 3
 #define NUM_TILES_IN_ROW 3 
 #define NUM_TILES NUM_ROWS * NUM_TILES_IN_ROW
-// DO NOT CHANGE THERE VALUES
+
+
+
+// DO NOT CHANGE THESE VALUES
 #define XY 2			// number of coordinates, x and y
 #define X 0				// position of x coordinate
 #define Y 1				// position of y coordinate
-#define CLEAR 0			// hardcoded blank
-#define MAX_MOVES 4		// max number of moves 4: up down left right
+#define CLEAR 0			// hardcoded blank tile
+#define MAX_MOVES 4		// max number of moves 4: up/down/left/right
 #define UP 0
 #define DOWN 1
 #define LEFT 2
@@ -45,7 +52,6 @@ int solved[NUM_TILES][XY] = {
 };
 
 
-
 // valid moves calculate for current position of
 // blank tile
 int moves[MAX_MOVES];
@@ -61,6 +67,7 @@ bool move(int T, int ax, int ay, int bx, int by);
 void get_user_puzzle(Container &this_contaier);
 int choose_path(int T, int x, int y, Container this_contaier);
 int manhattan(int T, int x, int y, Container this_contaier);
+bool check_solved(Container this_container);
 
 int main()
 {
@@ -403,3 +410,23 @@ int manhattan(int T, int x, int y, Container this_contaier)
 }
 
 
+bool check_solved(Container this_container)
+{
+	LL * temp;
+	int solvedX, solvedY, currX, currY;
+
+	for (int i = 0; i < NUM_TILES; i++)
+	{
+		temp = this_container.find(i);
+		currX = temp->x;
+		currY = temp->y;
+		solvedX = solved[i][X];
+		solvedY = solved[i][Y];
+		if ((solvedX != currX) || (solvedY != currY))
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
