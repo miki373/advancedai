@@ -2,6 +2,7 @@
 #include <math.h>
 #include <random>
 #include <time.h>
+#include <stdlib.h>
 #include "container.h"
 using namespace std;
 
@@ -56,34 +57,52 @@ int solved[NUM_TILES][XY] = {
 // blank tile
 int moves[MAX_MOVES];
 
+
 void print(Container this_contaier);
-bool is_on(int T, int x, int y, Container this_contaier);
-bool is_clear(int x, int y, Container this_contaier);
-void on(int T, int x, int y, Container this_container);
-void clear(int x, int y, Container this_container);
+
 bool adj(int ax, int ay, int bx, int by);
+
 void find_moves(int T, Container this_contaier);
-bool move(int T, int ax, int ay, int bx, int by);
+
+void move(int T, int ax, int ay, int bx, int by, Container &this_contaier);
+
 void get_user_puzzle(Container &this_contaier);
-int choose_path(int T, int x, int y, Container this_contaier);
+
+int choose_path(int T, Container this_contaier);
+
 int manhattan(int T, int x, int y, Container this_contaier);
-bool check_solved(Container this_container);
+
+bool puzzle_solved(Container this_container);
+
+void solve_puzzle(Container this_container);
+
+void resolve_path_coordinates(int direction, int T, int &ax, int &ay, int &bx, int &by, Container this_container);
+
 
 int main()
 {
-	// ADT
 	Container cont;
 	LL *temp;
-	
-	// BEGIN PUZZLE CODE
+	int path, ax, ay, bx, by;
+
+
 	get_user_puzzle(cont);
+	
 	print(cont);
-	find_moves(0, cont);
-	choose_path(0, 2, 1, cont);
+
+	while (!puzzle_solved(cont))
+	{
+		find_moves(0, cont);
+		path = choose_path(0, cont);
+		resolve_path_coordinates(path, 0, ax, ay, bx, by, cont);
+		move(0, ax, ay, bx, by, cont);
+		cout << endl;
+		print(cont);	
+	}
 	
 	
 	
-	
+
 	
 	return 0;
 }
@@ -123,46 +142,6 @@ void print(Container this_contaier)
 	}
 }
 
-// returns true or false if T is on x and y
-bool is_on(int T, int x, int y, Container this_contaier)
-{
-	LL * temp_struct;
-	temp_struct = this_contaier.find(T);
-	if (temp_struct->x == x && temp_struct->y == y)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-// checks if value on x,y is 0
-bool is_clear(int x, int y, Container this_contaier)
-{
-	LL * temp_struct;
-	temp_struct = this_contaier.find("clear",0);
-	if (temp_struct->x == x && temp_struct->y == y)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-
-}
-
-void on(int T, int x, int y, Container this_container)
-{
-	this_container.insert("on", T, x, y);
-}
-
-void clear(int x, int y, Container this_container)
-{
-	this_container.insert("clear", 0, x, y);
-}
 
 // check if ax and ay are adjacent to bx and by
 bool adj(int ax, int ay, int bx, int by)
@@ -278,7 +257,7 @@ void get_user_puzzle(Container &this_contaier)
 	int x, y, tile_num;
 	string status;
 
-	cout << "Enter puzzle:\nFormat (x,y) = tile numbe" << endl;
+	cout << "Enter puzzle:\nFormat (x,y) = tile number" << endl;
 	for (int i = 0; i < NUM_TILES; i++)
 	{
 		x = i % 3;
@@ -298,19 +277,23 @@ void get_user_puzzle(Container &this_contaier)
 	cout << "Data accepted..." << endl;
 }
 
-int choose_path(int T, int x, int y, Container this_contaier)
+int choose_path(int T, Container this_contaier)
 {
 	int direction = 0; 
 	int curr_distance = 0;
+	static int last_direction = INT_MAX;
 	int shortest_distance = INT_MAX;
-	LL * current_tile;
-	LL * destinatio_tile;
-	int tempX, tempY;
+	LL * temp;
+	int x, y;
+	temp = this_contaier.find(T);
+	x = temp->x;
+	y = temp->y;
+	srand(time(NULL));
 
-	if (moves[UP])
+
+	if (moves[UP] && last_direction != DOWN)
 	{
 		curr_distance = manhattan(T, x, y - 1, this_contaier);
-		cout << "\nDistance UP is " << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
@@ -318,36 +301,34 @@ int choose_path(int T, int x, int y, Container this_contaier)
 			
 		}
 	}
-	if (moves[DOWN])
+	if (moves[DOWN] && last_direction != UP)
 	{
 		curr_distance = manhattan(T, x, y + 1, this_contaier);
-		cout << "Distance DOWN is " << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
 			direction = DOWN;
 		}
 	}
-	if (moves[RIGHT])
+	if (moves[RIGHT] && last_direction != LEFT)
 	{
 		curr_distance = manhattan(T, x + 1, y, this_contaier);
-		cout << "Distance RIGHT is " << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
 			direction = RIGHT;
 		}
 	}
-	if (moves[LEFT])
+	if (moves[LEFT] && last_direction != RIGHT)
 	{
 		curr_distance = manhattan(T, x - 1, y, this_contaier);
-		cout << "Distance LEFT is " << curr_distance << endl;
 		if (curr_distance < shortest_distance)
 		{
 			shortest_distance = curr_distance;
 			direction = LEFT;
 		}
 	}
+	last_direction = direction;
 
 	return direction;
 }
@@ -409,8 +390,7 @@ int manhattan(int T, int x, int y, Container this_contaier)
 	return absoluteDif;
 }
 
-
-bool check_solved(Container this_container)
+bool puzzle_solved(Container this_container)
 {
 	LL * temp;
 	int solvedX, solvedY, currX, currY;
@@ -430,3 +410,56 @@ bool check_solved(Container this_container)
 	
 	return true;
 }
+
+void resolve_path_coordinates(int direction,int T, int &ax, int &ay, int &bx, int &by, Container this_container)
+{
+	LL* current = this_container.find(T);
+	ax = current->x;
+	ay = current->y;
+	
+
+	if (direction == UP)
+	{
+		bx = ax;
+		by = ay - 1;
+	}
+	else if (direction == DOWN)
+	{
+		bx = ax;
+		by = ay + 1;
+	}
+	else if (direction == LEFT)
+	{
+		bx = ax - 1;
+		by = ay;
+	}
+	else if (direction == RIGHT)
+	{
+		bx = ax + 1;
+		by = ay;
+	}
+	else
+	{
+		exit(1);
+	}
+}
+
+void move(int T, int ax, int ay, int bx, int by, Container &this_contaier)
+{
+	LL * temp;
+	int destT;
+	
+	temp = this_contaier.find(bx, by);
+	destT = temp->tile;
+	// DELETE
+	this_contaier.del(T);
+	this_contaier.del(destT);
+	
+	// INSERT
+	this_contaier.insert("clear", 0, bx, by);
+	this_contaier.insert("on", destT, ax, ay);
+	
+
+}
+
+
